@@ -10,4 +10,7 @@ lab15: lab15/main.cpp
 rk3: rk3/main.cpp
 	g++ rk3/main.cpp
 
-.PHONY: lab14 lab14_part_2 lab15 rk3
+rk3_example: rk3_example/main.cpp
+	g++ rk3_example/main.cpp
+
+.PHONY: lab14 lab14_part_2 lab15 rk3 rk3_example
