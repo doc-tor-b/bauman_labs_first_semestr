@@ -14,9 +14,6 @@
 #define DELETE_ALL_DATA_IN_FILE 4
 #define CLOSE_PROGRAM 5
 
-#define OPEN 1
-#define NOT_OPEN 0;
-
 typedef struct {
     char surname[20];
     char name[20];
@@ -29,11 +26,11 @@ typedef struct {
 
 void get_data(Student student);
 Student add_data();
+int get_confirmation();
 
 int main() {
     FILE* fd = NULL;
     puts("Trying to open data file");
-    int flag_file = NOT_OPEN;
     fd = fopen(FILE_PATH, "r+b");
     if (fd == NULL) {
         puts("File is not exist");
@@ -44,7 +41,7 @@ int main() {
             return 0;
         }
     }
-    flag_file = OPEN;
+    puts("Еhe file was opened successfully");
     int action = 0;
     int result = 0;
     Student student = {};
@@ -58,17 +55,29 @@ int main() {
         puts("\t5 Close program");
         scanf("%d", &action);
         switch (action) {
-            case GET_ALL_DATA_FROM_FILE:
-                if (flag_file) {
-                    fseek(fd, 0, SEEK_SET);
-                    while (fread(&student, sizeof(Student), 1, fd) == 1) {
-                        get_data(student);
-                    }
+            case GET_ALL_DATA_FROM_FILE: {
+                fseek(fd, 0, SEEK_SET);
+                int flag = 0;
+                puts("--------------");
+                while (fread(&student, sizeof(Student), 1, fd) == 1) {
+                    get_data(student);
+                    flag = 1;
                 }
+                if (!flag) {
+                    puts("File is empty");
+                }
+                puts("--------------");
                 break;
+            }
             case GET_DATA_ABOUT_SOME_STUDENT: {
                 fseek(fd, 0, SEEK_END);
                 long int pos = ftell(fd);
+                if (pos == 0) {
+                    puts("--------------");
+                    puts("File is empty");
+                    puts("--------------");
+                    break;
+                }
                 students = (Student *) malloc(pos);
                 fseek(fd, 0, SEEK_SET);
                 for (int i = 0; i < pos / sizeof(Student); ++i) {
@@ -78,47 +87,64 @@ int main() {
                     }
                 }
                 int index = 0;
+                int is_same_students_exist = 0;
                 for (int d = 1; d <= 31; ++d) {
                     int flag_data = 0;
                     for (int i = 0; i < pos / sizeof(Student); ++i) {
                         if (atoi(students[i].data) == d && flag_data == 0) {
                             flag_data = 1;
                             index = i;
-                            puts("--------------");
                         } else if (atoi(students[i].data) == d && flag_data == 1) {
+                            puts("--------------");
                             get_data(students[index]);
                             get_data(students[i]);
                             flag_data = 2;
+                            is_same_students_exist = 1;
                         } else if (atoi(students[i].data) == d && flag_data == 2) {
                             get_data(students[i]);
                         }
                     }
                 }
                 free(students);
+                if (!is_same_students_exist) {
+                    puts("--------------");
+                    puts("There are no students with the same birthdays");
+                    puts("--------------");
+                } else {
+                    puts("--------------");
+                }
                 break;
             }
             case ADD_NEW_STUDENT_DATA:
-                if (flag_file) {
-                    fseek(fd, 0, SEEK_END);
-                    student = add_data();
-                    result = fwrite(&student, sizeof(student), 1, fd);
-                    if (result != 1) {
-                        puts("Error of add new student to file");
-                    } else {
-                        puts("Student was added");
-                    }
+                fseek(fd, 0, SEEK_END);
+                student = add_data();
+                result = fwrite(&student, sizeof(student), 1, fd);
+                if (result != 1) {
+                    puts("--------------");
+                    puts("Error of add new student to file");
+                    puts("--------------");
+                } else {
+                    puts("--------------");
+                    puts("Student was added");
+                    puts("--------------");
                 }
                 break;
             case DELETE_ALL_DATA_IN_FILE:
-                if (flag_file == OPEN) {
+                puts("Do you want delete all user data?");
+                result = get_confirmation();
+                if (result == 1) {
                     freopen(FILE_PATH, "w+b", fd);
+                    puts("--------------");
+                    puts("Data successfully deleted");
+                    puts("--------------");
+                } else {
+                    puts("--------------");
+                    puts("Action canceled");
+                    puts("--------------");
                 }
                 break;
             case CLOSE_PROGRAM:
-                if (flag_file == OPEN) {
-                    fclose(fd);
-                    flag_file = NOT_OPEN;
-                }
+                fclose(fd);
                 return 0;
         }
     }
@@ -137,10 +163,7 @@ void get_data(Student student) {
 
 Student add_data() {
     Student st = {};
-    puts("Enter the:");
-    puts("\tSurname");
-    puts("\tName");
-    puts("\tBirthday");
+    puts("Enter the: Surname Name Birthday(day.month.year)");
     scanf("%s %s %s",
           st.name,
           st.surname,
@@ -159,4 +182,22 @@ Student add_data() {
     fgets(st.fourth_exam, sizeof(st.fourth_exam), stdin);
     *strchr(st.fourth_exam, '\n') = '\0';
     return st;
+}
+
+int get_confirmation() {
+    char yn = 0;
+    puts("Please confirm the action (y/n)");
+    while (getchar() != '\n');
+    while (true) {
+        yn = getchar();
+        if (yn == 'y') {
+            return 1;
+        } else if (yn == 'n') {
+            return 0;
+        } else {
+            if (yn != '\n') {
+                puts("Invalid value, repeat the input (y/n)");
+            }
+        }
+    }
 }
