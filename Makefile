@@ -25,4 +25,7 @@ rk3_example: rk3_example/main.cpp
 rk3_final: rk3_final/main.cpp
 	g++ rk3_final/main.cpp
 
-.PHONY: lab14 lab14_part_2 lab15 lab16 lab17 rk3 rk3_example rk3_final lab5
+exam_prep: exam_prep/main.cpp
+	g++ exam_prep/main.cpp
+
+.PHONY: lab14 lab14_part_2 lab15 lab16 lab17 rk3 rk3_example rk3_final lab5 exam_prep
